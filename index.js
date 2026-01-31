@@ -1,23 +1,22 @@
 const express = require('express');
-const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Render par aapke variables se ye uthayega
-const BOT_TOKEN = process.env.TG_BOT_TOKEN;
-const CHANNEL = process.env.CHANNEL_NAME;
-
-app.get('/:id', async (req, res) => {
+app.get('/:id', (req, res) => {
     const msgId = req.params.id;
-    // Yeh link Telegram ke anonymous server se file stream karega
-    const streamUrl = `https://t.me/s/${CHANNEL}/${msgId}`;
+    const channel = process.env.CHANNEL_NAME;
+
+    // Yeh header Chrome ko signal deta hai ki "Bhai, app mat kholo, file download karo"
+    res.setHeader('Content-Disposition', `attachment; filename="MoviesZone_File_${msgId}.mkv"`);
     
-    // Chrome ko bypass karne ke liye direct stream headers
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="MoviesZone_${msgId}.mkv"`);
+    // Sabse bada bypass trick: embed link with download param
+    const bypassUrl = `https://t.me/${channel}/${msgId}?embed=1&download=1`;
     
-    // Direct Redirect to Telegram's File Server (Bypassing the App trigger)
-    res.redirect(`https://t.me/${CHANNEL}/${msgId}?download=1`);
+    res.redirect(bypassUrl);
 });
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.get('/', (req, res) => {
+    res.send('Movies Zone 04 Server is Running! Use /ID to download.');
+});
+
+app.listen(port, () => console.log(`Server is live on port ${port}`));
